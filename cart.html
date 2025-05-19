@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Your Cart</title>
+</head>
+<body>
+  <h1>Your Cart</h1>
+  <div id="cartDisplay"></div>
+  <h3>Payload Sent to Webhook:</h3>
+  <pre id="payloadOutput"></pre>
+
+  <script>
+    const userEmail = localStorage.getItem("user_email");
+    const cartKey = `cart_items_${userEmail}`;
+    let cart = JSON.parse(localStorage.getItem(cartKey)) || [];
+
+    const container = document.getElementById("cartDisplay");
+
+    if (!userEmail) {
+      container.innerHTML = "<p>No user found. Please log in again.</p>";
+      throw new Error("Missing user email in localStorage");
+    }
+
+    if (cart.length === 0) {
+      container.innerHTML = "<p>Your cart is empty.</p>";
+    } else {
+      const ul = document.createElement("ul");
+      cart.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = `${item.name} - $${item.price} x ${item.quantity}`;
+        ul.appendChild(li);
+      });
+      container.appendChild(ul);
+    }
+
+    // === Webhook Trigger ===
+    const webhookURL = "https://webhook.site/b38391fa-e2a1-4464-9e9b-b179eb204910"; // Update this
+
+    const cartPayload = {
+      email: userEmail,
+      items: cart.filter(item => item.name && item.quantity > 0)
+    };
+
+    // Output payload to screen for debug
+    document.getElementById("payloadOutput").textContent = JSON.stringify(cartPayload, null, 2);
+
+    // Trigger webhook
+    if (cartPayload.items.length > 0) {
+      fetch(webhookURL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(cartPayload)
+      })
+        .then(res => console.log("Webhook triggered", res.status))
+        .catch(err => console.error("Webhook failed", err));
+    } else {
+      console.warn("Cart payload has no valid items.");
+    }
+  </script>
+</body>
+</html>

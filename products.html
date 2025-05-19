@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Products</title>
+</head>
+<body>
+  <h1>Available Products</h1>
+  <div id="productList"></div>
+  <br />
+  <a href="cart.html">View Cart</a>
+
+  <script>
+    const email = localStorage.getItem("user_email");
+    if (!email) {
+      window.location.href = "login.html";
+    }
+
+    const products = [
+      { item: "p1", name: "Laptop", price: 999.99, item_type: "product" },
+      { item: "p2", name: "Phone", price: 499.99, item_type: "product" },
+      { item: "p3", name: "Headphones", price: 199.99, item_type: "product" },
+    ];
+
+    const container = document.getElementById("productList");
+
+    products.forEach(product => {
+      const div = document.createElement("div");
+      div.innerHTML = `
+        <strong>${product.name}</strong><br/>
+        Price: $${product.price}<br/>
+        <button onclick='addToCart(${JSON.stringify(product)})'>Add to Cart</button>
+        <hr/>
+      `;
+      container.appendChild(div);
+    });
+
+    function addToCart(item) {
+      const cartKey = `cart_items_${email}`;
+      let cart = JSON.parse(localStorage.getItem(cartKey)) || [];
+
+      const existing = cart.find(i => i.item === item.item);
+      if (existing) {
+        existing.quantity += 1;
+      } else {
+        cart.push({ ...item, quantity: 1, url: window.location.href });
+      }
+
+      localStorage.setItem(cartKey, JSON.stringify(cart));
+      alert(`${item.name} added to cart!`);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login or Register</title>
+</head>
+<body>
+  <h1>Login or Register</h1>
+  <form id="loginForm">
+    <label>Email: <input type="email" id="email" required /></label>
+    <button type="submit">Continue</button>
+  </form>
+
+  <script>
+    document.getElementById("loginForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+      const email = document.getElementById("email").value;
+      localStorage.setItem("user_email", email);
+      window.location.href = "products.html";
+    });
+  </script>
+</body>
+</html>
