@@ -6,28 +6,28 @@
 </head>
 <body>
   <h1>Login or Register</h1>
-  <form id="loginForm">
-    <label>Name:<input type="text" id="name" placeholder="Your Name" required /></label>
-    <label>Email: <input type="email" id="email" placeholder="Your Email" required /></label>
+  <form id="loginForm" onsubmit="login(); return false;">
+    <label>Name:<input type="text" id="name" placeholder="Your Name" required /></label><br><br>
+    <label>Email: <input type="email" id="email" placeholder="Your Email" required /></label><br><br>
     <button type="submit">Continue</button>
   </form>
 
   <script>
     function login() {
-    const name = document.getElementById("name").value.trim();
-    const email = document.getElementById("email").value.trim();
+      const name = document.getElementById("name").value.trim();
+      const email = document.getElementById("email").value.trim();
 
-    if (!name || !email) {
-      alert("Please enter both name and email.");
-      return;
+      if (!name || !email) {
+        alert("Please enter both name and email.");
+        return;
+      }
+
+      localStorage.setItem("user_name", name);
+      localStorage.setItem("user_email", email);
+      localStorage.setItem("login_time", new Date().toLocaleString());
+
+      window.location.href = "products.html";
     }
-
-    localStorage.setItem("user_name", name);
-    localStorage.setItem("user_email", email);
-    localStorage.setItem("login_time", new Date().toLocaleString());
-
-    window.location.href = "products.html";
-  }
   </script>
 </body>
 </html>
