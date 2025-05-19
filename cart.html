@@ -76,9 +76,11 @@
       container.appendChild(ul);
     }
 
-    // Send cart data to webhook using sendBeacon
+    // Send cart data to webhook using sendBeacon via CORS proxy
     if (cart.length > 0) {
       const webhookUrl = 'https://webhook.site/b38391fa-e2a1-4464-9e9b-b179eb204910'; // Replace with your valid webhook URL
+      const proxyUrl = 'https://cors-anywhere.herokuapp.com/'; // Public CORS proxy (use with caution)
+      const targetUrl = proxyUrl + webhookUrl;
 
       const payload = {
         user_info: { name: userName, email: userEmail, login_time: loginTime },
@@ -90,11 +92,17 @@
       try {
         if (navigator.sendBeacon) {
           const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-          const success = navigator.sendBeacon(webhookUrl, blob);
+          const success = navigator.sendBeacon(targetUrl, blob);
           console.log('Webhook sendBeacon success:', success);
         } else {
-          console.warn('sendBeacon not supported, falling back to manual handling.');
-          // Optional: Implement fallback if sendBeacon is unavailable
+          console.warn('sendBeacon not supported, falling back to fetch.');
+          fetch(targetUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          })
+            .then(() => console.log('Fallback fetch sent'))
+            .catch(error => console.error('Fallback fetch failed:', error));
         }
       } catch (error) {
         console.error('Failed to send webhook data:', error);
