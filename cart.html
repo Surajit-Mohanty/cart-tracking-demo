@@ -76,9 +76,9 @@
       container.appendChild(ul);
     }
 
-    // Send cart data to webhook.site as image beacon to avoid CORS issues
+    // Send cart data to webhook using sendBeacon
     if (cart.length > 0) {
-      const webhookBaseUrl = 'https://webhook.site/b38391fa-e2a1-4464-9e9b-b179eb204910'; // Replace with your webhook URL
+      const webhookUrl = 'https://webhook.site/b38391fa-e2a1-4464-9e9b-b179eb204910'; // Replace with your valid webhook URL
 
       const payload = {
         user_info: { name: userName, email: userEmail, login_time: loginTime },
@@ -87,18 +87,18 @@
         timestamp: new Date().toISOString()
       };
 
-      const encodedPayload = encodeURIComponent(JSON.stringify(payload));
-
-      // Append payload as a query param
-      const beaconUrl = `${webhookBaseUrl}?data=${encodedPayload}`;
-
-      // Create invisible image to trigger GET request
-      const img = new Image();
-      img.src = beaconUrl;
-      img.style.display = 'none';
-      document.body.appendChild(img);
-
-      console.log('Sent cart data beacon:', beaconUrl);
+      try {
+        if (navigator.sendBeacon) {
+          const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+          const success = navigator.sendBeacon(webhookUrl, blob);
+          console.log('Webhook sendBeacon success:', success);
+        } else {
+          console.warn('sendBeacon not supported, falling back to manual handling.');
+          // Optional: Implement fallback if sendBeacon is unavailable
+        }
+      } catch (error) {
+        console.error('Failed to send webhook data:', error);
+      }
     }
   </script>
 
