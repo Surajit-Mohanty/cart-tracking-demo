@@ -7,21 +7,16 @@
 <body>
   <h1>Your Cart</h1>
   <div id="cartDisplay"></div>
-  <h3>Payload Sent to Webhook:</h3>
-  <pre id="payloadOutput"></pre>
 
   <script>
+    // Get current user's email and cart
     const userEmail = localStorage.getItem("user_email");
     const cartKey = `cart_items_${userEmail}`;
-    let cart = JSON.parse(localStorage.getItem(cartKey)) || [];
+    const cart = JSON.parse(localStorage.getItem(cartKey)) || [];
 
     const container = document.getElementById("cartDisplay");
 
-    if (!userEmail) {
-      container.innerHTML = "<p>No user found. Please log in again.</p>";
-      throw new Error("Missing user email in localStorage");
-    }
-
+    // Display cart items
     if (cart.length === 0) {
       container.innerHTML = "<p>Your cart is empty.</p>";
     } else {
@@ -34,28 +29,28 @@
       container.appendChild(ul);
     }
 
-    // === Webhook Trigger ===
-    const webhookURL = "https://webhook.site/b38391fa-e2a1-4464-9e9b-b179eb204910"; // Update this
+    // === Einstein/ETMC style tracking using image beacon to avoid CORS ===
+    // Replace with your actual org ID and webhook site URL
+    const webhookBase = "webhook.site/b38391fa-e2a1-4464-9e9b-b179eb204910"; // <-- Your webhook.site URL without protocol
+    const orgId = "514007099"; // Your org ID
 
-    const cartPayload = {
-      email: userEmail,
-      items: cart.filter(item => item.name && item.quantity > 0)
-    };
+    if (cart.length > 0 && userEmail) {
+      const payloadObj = {
+        user_info: { email: userEmail },
+        cart: cart,
+        url: window.location.href
+      };
+      const payloadStr = encodeURIComponent(JSON.stringify(payloadObj));
+      const img = new Image();
+      img.src = `https://${webhookBase}/c2/${orgId}/track_cart?payload=${payloadStr}`;
+      img.style.display = "none";
+      img.width = 0;
+      img.height = 0;
+      img.alt = "";
+      img.setAttribute("aria-hidden", "true");
+      document.body.appendChild(img);
 
-    // Output payload to screen for debug
-    document.getElementById("payloadOutput").textContent = JSON.stringify(cartPayload, null, 2);
-
-    // Trigger webhook
-    if (cartPayload.items.length > 0) {
-      fetch(webhookURL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(cartPayload)
-      })
-        .then(res => console.log("Webhook triggered", res.status))
-        .catch(err => console.error("Webhook failed", err));
-    } else {
-      console.warn("Cart payload has no valid items.");
+      console.log("Tracking image beacon sent with payload:", payloadObj);
     }
   </script>
 </body>
