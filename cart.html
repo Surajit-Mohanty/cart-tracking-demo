@@ -86,15 +86,13 @@
 
   // Send data to webhook
   if (cart.length > 0 && userEmail) {
-    fetch("https://cors-anywhere.herokuapp.com/" + webhookURL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(cartPayload)
-    })
-    .then(res => console.log("Webhook triggered", res.status))
-    .catch(err => console.error("Webhook failed", err));
+    try {
+      const blob = new Blob([JSON.stringify(cartPayload)], { type: "application/json" });
+      navigator.sendBeacon(webhookURL, blob);
+      console.log("Webhook sent via sendBeacon");
+    } catch (err) {
+      console.error("Failed to send beacon", err);
+    }
   }
 
   function logout() {
