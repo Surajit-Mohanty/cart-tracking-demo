@@ -4,17 +4,18 @@
   <meta charset="UTF-8" />
   <title>Your Cart</title>
   <style>
-    body { font-family: Arial, sans-serif; }
+    body { font-family: Arial, sans-serif; margin: 0; padding: 20px; }
     #header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px;
       background: #f0f0f0;
+      padding: 10px 20px;
       margin-bottom: 20px;
     }
     #userInfo {
       font-size: 0.9em;
+      color: #333;
     }
     button.logout {
       background: #d9534f;
@@ -44,21 +45,22 @@
   <div id="cartDisplay"></div>
 
   <script>
+    // Get user data from localStorage
     const userName = localStorage.getItem('user_name') || 'Guest User';
     const userEmail = localStorage.getItem('user_email') || 'guest@example.com';
     const loginTime = localStorage.getItem('login_time') || '';
 
-    // Display user info
+    // Show user info
     const userInfoDiv = document.getElementById('userInfo');
     userInfoDiv.textContent = `Name: ${userName} | Email: ${userEmail} | Login Time: ${loginTime}`;
 
-    // Logout
+    // Logout button clears localStorage and redirects to login page
     document.querySelector('.logout').addEventListener('click', () => {
       localStorage.clear();
-      window.location.href = 'login.html';
+      window.location.href = 'index.html'; // Change if your login page has a different name
     });
 
-    // Get cart from localStorage
+    // Load cart for current user
     const cartKey = 'cart_items_' + userEmail;
     const cart = JSON.parse(localStorage.getItem(cartKey)) || [];
 
@@ -76,11 +78,10 @@
       container.appendChild(ul);
     }
 
-    // Send cart data to webhook using sendBeacon via CORS proxy
+    // Send cart data to webhook.site via image beacon (GET request, no CORS issue)
     if (cart.length > 0) {
-      const webhookUrl = 'https://webhook.site/1711d7b5-f5f9-403c-bbfe-19335f79d66c'; // Replace with your valid webhook URL
-      const proxyUrl = 'https://cors-anywhere.herokuapp.com/'; // Public CORS proxy (use with caution)
-      const targetUrl = proxyUrl + webhookUrl;
+      const webhookId = 'https://webhook.site/1711d7b5-f5f9-403c-bbfe-19335f79d66c'; // Replace with your actual webhook.site ID
+      const webhookUrl = `https://webhook.site/${webhookId}`;
 
       const payload = {
         user_info: { name: userName, email: userEmail, login_time: loginTime },
@@ -89,24 +90,14 @@
         timestamp: new Date().toISOString()
       };
 
-      try {
-        if (navigator.sendBeacon) {
-          const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
-          const success = navigator.sendBeacon(targetUrl, blob);
-          console.log('Webhook sendBeacon success:', success);
-        } else {
-          console.warn('sendBeacon not supported, falling back to fetch.');
-          fetch(targetUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          })
-            .then(() => console.log('Fallback fetch sent'))
-            .catch(error => console.error('Fallback fetch failed:', error));
-        }
-      } catch (error) {
-        console.error('Failed to send webhook data:', error);
-      }
+      const encodedPayload = encodeURIComponent(JSON.stringify(payload));
+
+      const img = new Image();
+      img.src = `${webhookUrl}?data=${encodedPayload}`;
+      img.style.display = 'none';
+      document.body.appendChild(img);
+
+      console.log('Cart data sent as image beacon:', img.src);
     }
   </script>
 
