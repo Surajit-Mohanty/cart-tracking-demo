@@ -6,30 +6,24 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      margin: 0;
     }
-    .top-bar {
+    #header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
-      background: #f4f4f4;
-      padding: 10px 20px;
+      padding: 10px;
+      background-color: #f2f2f2;
       border-bottom: 1px solid #ccc;
     }
-    .user-info {
+    #userInfo {
       text-align: left;
-      font-size: 14px;
     }
-    .logout-btn {
+    #logoutBtn {
       padding: 6px 12px;
-      background-color: #d9534f;
+      background-color: #ff6666;
       color: white;
       border: none;
-      border-radius: 4px;
       cursor: pointer;
-    }
-    .logout-btn:hover {
-      background-color: #c9302c;
+      border-radius: 5px;
     }
     #cartDisplay {
       padding: 20px;
@@ -37,72 +31,65 @@
   </style>
 </head>
 <body>
+  <div id="header">
+    <div id="userInfo">
+      <div><strong>Name:</strong> <span id="userName">Guest</span></div>
+      <div><strong>Email:</strong> <span id="userEmail">-</span></div>
+      <div><strong>Login Time:</strong> <span id="loginTime">-</span></div>
+    </div>
+    <button id="logoutBtn" onclick="logout()">Logout</button>
+  </div>
 
-<div class="top-bar">
-  <div class="user-info" id="userInfo"></div>
-  <button class="logout-btn" onclick="logout()">Logout</button>
-</div>
+  <h2 style="padding-left: 20px;">Your Cart</h2>
+  <div id="cartDisplay"></div>
 
-<h1 style="padding-left: 20px;">Your Cart</h1>
-<div id="cartDisplay"></div>
+  <script>
+    const userName = localStorage.getItem("user_name") || "Guest User";
+    const userEmail = localStorage.getItem("user_email") || "Not Provided";
+    const loginTime = localStorage.getItem("login_time") || "-";
 
-<script>
-  // Get current user's email and cart
-  const userEmail = localStorage.getItem("user_email");
-  const userName = localStorage.getItem("user_name") || "Guest User";
-  const loginTime = localStorage.getItem("login_time") || new Date().toLocaleString();
-  const cartKey = `cart_items_${userEmail}`;
-  const cart = JSON.parse(localStorage.getItem(cartKey)) || [];
+    document.getElementById("userName").textContent = userName;
+    document.getElementById("userEmail").textContent = userEmail;
+    document.getElementById("loginTime").textContent = loginTime;
 
-  const userInfoDiv = document.getElementById("userInfo");
-  userInfoDiv.innerHTML = `
-    <div><strong>Name:</strong> ${userName}</div>
-    <div><strong>Email:</strong> ${userEmail}</div>
-    <div><strong>Login Time:</strong> ${loginTime}</div>
-  `;
-
-  const container = document.getElementById("cartDisplay");
-
-  // Display cart
-  if (cart.length === 0) {
-    container.innerHTML = "<p>Your cart is empty.</p>";
-  } else {
-    const ul = document.createElement("ul");
-    cart.forEach(item => {
-      const li = document.createElement("li");
-      li.textContent = `${item.name} - $${item.price} x ${item.quantity}`;
-      ul.appendChild(li);
-    });
-    container.appendChild(ul);
-  }
-
-  // === Einstein/ETMC Cart Tracking ===
-  const webhookURL = "https://webhook.site/b38391fa-e2a1-4464-9e9b-b179eb204910"; // Replace with your webhook
-
-  const cartPayload = {
-    email: userEmail,
-    items: cart
-  };
-
-  // Send data to webhook
-  if (cart.length > 0 && userEmail) {
-    try {
-      const blob = new Blob([JSON.stringify(cartPayload)], { type: "application/json" });
-      navigator.sendBeacon(webhookURL, blob);
-      console.log("Webhook sent via sendBeacon");
-    } catch (err) {
-      console.error("Failed to send beacon", err);
+    function logout() {
+      localStorage.clear();
+      window.location.href = "index.html";
     }
-  }
 
-  function logout() {
-    localStorage.removeItem("user_email");
-    localStorage.removeItem("user_name");
-    localStorage.removeItem("login_time");
-    localStorage.removeItem(cartKey);
-    window.location.href = "index.html";
-  }
-</script>
+    const cartKey = `cart_items_${userEmail}`;
+    const cart = JSON.parse(localStorage.getItem(cartKey)) || [];
+    const container = document.getElementById("cartDisplay");
 
+    if (cart.length === 0) {
+      container.innerHTML = "<p>Your cart is empty.</p>";
+    } else {
+      const ul = document.createElement("ul");
+      cart.forEach(item => {
+        const li = document.createElement("li");
+        li.textContent = `${item.name} - $${item.price} x ${item.quantity}`;
+        ul.appendChild(li);
+      });
+      container.appendChild(ul);
+    }
+
+    // === Webhook Sending via Beacon (no CORS issue) ===
+    const webhookURL = "https://webhook.site/b38391fa-e2a1-4464-9e9b-b179eb204910";
+
+    const cartPayload = {
+      email: userEmail,
+      name: userName,
+      loginTime: loginTime,
+      items: cart
+    };
+
+    if (cart.length > 0 && userEmail) {
+      const blob = new Blob([JSON.stringify(cartPayload)], {
+        type: "application/json"
+      });
+      const success = navigator.sendBeacon(webhookURL, blob);
+      console.log("Webhook sendBeacon success:", success);
+    }
+  </script>
 </body>
 </html>
