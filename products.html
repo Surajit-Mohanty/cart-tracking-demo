@@ -3,13 +3,49 @@
 <head>
   <meta charset="UTF-8" />
   <title>Products</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+    }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f4f4f4;
+      padding: 10px 20px;
+      border-bottom: 1px solid #ccc;
+    }
+    .user-info {
+      text-align: left;
+      font-size: 14px;
+    }
+    .logout-btn {
+      padding: 6px 12px;
+      background-color: #d9534f;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .logout-btn:hover {
+      background-color: #c9302c;
+    }
+    #productList > div {
+      margin: 20px;
+    }
+  </style>
 </head>
 <body>
 
-<h1>Welcome, <span id="userEmail"></span></h1>
+<div class="top-bar">
+  <div class="user-info" id="userInfo"></div>
+  <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+
+<h2>Product List</h2>
 
 <div id="productList">
-  <!-- Example products -->
   <div>
     <strong>Laptop</strong> - $999.99
     <button onclick="addToCart('1', 'Laptop', 999.99)">Add to Cart</button>
@@ -24,33 +60,47 @@
   </div>
 </div>
 
-<button id="viewCartBtn">View Cart</button>
+<button onclick="viewCart()">View Cart</button>
 
 <script>
-  // User email stored somewhere (maybe from login)
-  const userEmail = localStorage.getItem('user_email') || 'testuser@example.com';
-  document.getElementById('userEmail').textContent = userEmail;
+  const email = localStorage.getItem("user_email") || "test@example.com";
+  const name = localStorage.getItem("user_name") || "Guest User";
+  const loginTime = localStorage.getItem("login_time") || new Date().toLocaleString();
 
-  const cartKey = 'cart_items_' + userEmail;
+  document.getElementById("userInfo").innerHTML = `
+    <div><strong>Name:</strong> ${name}</div>
+    <div><strong>Email:</strong> ${email}</div>
+    <div><strong>Login Time:</strong> ${loginTime}</div>
+  `;
+
+  const cartKey = `cart_items_${email}`;
 
   function addToCart(id, name, price) {
     let cart = JSON.parse(localStorage.getItem(cartKey)) || [];
 
-    // Check if item exists
-    const existingItem = cart.find(item => item.id === id);
-    if (existingItem) {
-      existingItem.quantity += 1;  // increase quantity
+    const existing = cart.find(item => item.id === id);
+    if (existing) {
+      existing.quantity += 1;
     } else {
       cart.push({ id, name, price, quantity: 1 });
     }
 
     localStorage.setItem(cartKey, JSON.stringify(cart));
-    alert(`Added ${name} to cart!`);
+    alert(`${name} added to cart.`);
   }
 
-  document.getElementById('viewCartBtn').addEventListener('click', function() {
+  function viewCart() {
     window.location.href = 'cart.html';
-  });
+  }
+
+  function logout() {
+    localStorage.removeItem("user_email");
+    localStorage.removeItem("user_name");
+    localStorage.removeItem("login_time");
+    // optionally remove the cart too
+    localStorage.removeItem(cartKey);
+    window.location.href = 'login.html'; // or your login page
+  }
 </script>
 
 </body>
