@@ -5,50 +5,53 @@
   <title>Products</title>
 </head>
 <body>
-  <h1>Available Products</h1>
-  <div id="productList"></div>
-  <br />
-  <a href="cart.html">View Cart</a>
 
-  <script>
-    const email = localStorage.getItem("user_email");
-    if (!email) {
-      window.location.href = "login.html";
+<h1>Welcome, <span id="userEmail"></span></h1>
+
+<div id="productList">
+  <!-- Example products -->
+  <div>
+    <strong>Laptop</strong> - $999.99
+    <button onclick="addToCart('1', 'Laptop', 999.99)">Add to Cart</button>
+  </div>
+  <div>
+    <strong>Phone</strong> - $499.99
+    <button onclick="addToCart('2', 'Phone', 499.99)">Add to Cart</button>
+  </div>
+  <div>
+    <strong>Headphones</strong> - $199.99
+    <button onclick="addToCart('3', 'Headphones', 199.99)">Add to Cart</button>
+  </div>
+</div>
+
+<button id="viewCartBtn">View Cart</button>
+
+<script>
+  // User email stored somewhere (maybe from login)
+  const userEmail = localStorage.getItem('user_email') || 'testuser@example.com';
+  document.getElementById('userEmail').textContent = userEmail;
+
+  const cartKey = 'cart_items_' + userEmail;
+
+  function addToCart(id, name, price) {
+    let cart = JSON.parse(localStorage.getItem(cartKey)) || [];
+
+    // Check if item exists
+    const existingItem = cart.find(item => item.id === id);
+    if (existingItem) {
+      existingItem.quantity += 1;  // increase quantity
+    } else {
+      cart.push({ id, name, price, quantity: 1 });
     }
 
-    const products = [
-      { item: "p1", name: "Laptop", price: 999.99, item_type: "product" },
-      { item: "p2", name: "Phone", price: 499.99, item_type: "product" },
-      { item: "p3", name: "Headphones", price: 199.99, item_type: "product" },
-    ];
+    localStorage.setItem(cartKey, JSON.stringify(cart));
+    alert(`Added ${name} to cart!`);
+  }
 
-    const container = document.getElementById("productList");
+  document.getElementById('viewCartBtn').addEventListener('click', function() {
+    window.location.href = 'cart.html';
+  });
+</script>
 
-    products.forEach(product => {
-      const div = document.createElement("div");
-      div.innerHTML = `
-        <strong>${product.name}</strong><br/>
-        Price: $${product.price}<br/>
-        <button onclick='addToCart(${JSON.stringify(product)})'>Add to Cart</button>
-        <hr/>
-      `;
-      container.appendChild(div);
-    });
-
-    function addToCart(item) {
-      const cartKey = `cart_items_${email}`;
-      let cart = JSON.parse(localStorage.getItem(cartKey)) || [];
-
-      const existing = cart.find(i => i.item === item.item);
-      if (existing) {
-        existing.quantity += 1;
-      } else {
-        cart.push({ ...item, quantity: 1, url: window.location.href });
-      }
-
-      localStorage.setItem(cartKey, JSON.stringify(cart));
-      alert(`${item.name} added to cart!`);
-    }
-  </script>
 </body>
 </html>
