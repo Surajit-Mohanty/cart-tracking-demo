@@ -3,62 +3,106 @@
 <head>
   <meta charset="UTF-8" />
   <title>Your Cart</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+    }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f4f4f4;
+      padding: 10px 20px;
+      border-bottom: 1px solid #ccc;
+    }
+    .user-info {
+      text-align: left;
+      font-size: 14px;
+    }
+    .logout-btn {
+      padding: 6px 12px;
+      background-color: #d9534f;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .logout-btn:hover {
+      background-color: #c9302c;
+    }
+    #cartDisplay {
+      padding: 20px;
+    }
+  </style>
 </head>
 <body>
 
-<h1>Your Cart</h1>
+<div class="top-bar">
+  <div class="user-info" id="userInfo"></div>
+  <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+
+<h1 style="padding-left: 20px;">Your Cart</h1>
 <div id="cartDisplay"></div>
 
 <script>
-  const userEmail = localStorage.getItem('user_email') || 'testuser@example.com';
-  const cartKey = 'cart_items_' + userEmail;
+  // Get current user's email and cart
+  const userEmail = localStorage.getItem("user_email");
+  const userName = localStorage.getItem("user_name") || "Guest User";
+  const loginTime = localStorage.getItem("login_time") || new Date().toLocaleString();
+  const cartKey = `cart_items_${userEmail}`;
   const cart = JSON.parse(localStorage.getItem(cartKey)) || [];
 
-  const container = document.getElementById('cartDisplay');
+  const userInfoDiv = document.getElementById("userInfo");
+  userInfoDiv.innerHTML = `
+    <div><strong>Name:</strong> ${userName}</div>
+    <div><strong>Email:</strong> ${userEmail}</div>
+    <div><strong>Login Time:</strong> ${loginTime}</div>
+  `;
 
+  const container = document.getElementById("cartDisplay");
+
+  // Display cart
   if (cart.length === 0) {
-    container.innerHTML = '<p>Your cart is empty.</p>';
+    container.innerHTML = "<p>Your cart is empty.</p>";
   } else {
-    const ul = document.createElement('ul');
+    const ul = document.createElement("ul");
     cart.forEach(item => {
-      const li = document.createElement('li');
+      const li = document.createElement("li");
       li.textContent = `${item.name} - $${item.price} x ${item.quantity}`;
       ul.appendChild(li);
     });
     container.appendChild(ul);
   }
 
-  // === Send cart data as image beacon ===
-  if (cart.length > 0) {
-    const webhookUrlBase = 'https://webhook.site/b38391fa-e2a1-4464-9e9b-b179eb204910'; // your webhook URL
+  // === Einstein/ETMC Cart Tracking ===
+  const webhookURL = "https://webhook.site/b38391fa-e2a1-4464-9e9b-b179eb204910"; // Replace with your webhook
 
-    // Prepare payload in ETMC expected format (or simple)
-    const payload = {
-      user_info: { email: userEmail },
-      cart: cart.map(item => ({
-        item: item.id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        url: window.location.href,
-        item_type: 'product'
-      })),
-      url: window.location.href
-    };
+  const cartPayload = {
+    email: userEmail,
+    items: cart
+  };
 
-    // Encode payload
-    const encodedPayload = encodeURIComponent(JSON.stringify(payload));
+  // Send data to webhook
+  if (cart.length > 0 && userEmail) {
+    fetch("https://cors-anywhere.herokuapp.com/" + webhookURL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(cartPayload)
+    })
+    .then(res => console.log("Webhook triggered", res.status))
+    .catch(err => console.error("Webhook failed", err));
+  }
 
-    // Build image beacon URL
-    const beaconUrl = `${webhookUrlBase}/c2/514007099/track_cart?payload=${encodedPayload}`;
-
-    // Send beacon
-    const img = new Image();
-    img.src = beaconUrl;
-    img.style.display = 'none';
-    document.body.appendChild(img);
-
-    console.log('Sent cart beacon:', beaconUrl);
+  function logout() {
+    localStorage.removeItem("user_email");
+    localStorage.removeItem("user_name");
+    localStorage.removeItem("login_time");
+    localStorage.removeItem(cartKey);
+    window.location.href = "index.html";
   }
 </script>
 
