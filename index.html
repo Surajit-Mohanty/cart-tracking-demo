@@ -13,12 +13,21 @@
   </form>
 
   <script>
-    document.getElementById("loginForm").addEventListener("submit", function (e) {
-      e.preventDefault();
-      const email = document.getElementById("email").value;
-      localStorage.setItem("user_email", email);
-      window.location.href = "products.html";
-    });
+    function login() {
+    const name = document.getElementById("name").value.trim();
+    const email = document.getElementById("email").value.trim();
+
+    if (!name || !email) {
+      alert("Please enter both name and email.");
+      return;
+    }
+
+    localStorage.setItem("user_name", name);
+    localStorage.setItem("user_email", email);
+    localStorage.setItem("login_time", new Date().toLocaleString());
+
+    window.location.href = "products.html";
+  }
   </script>
 </body>
 </html>
