@@ -31,7 +31,26 @@
     .logout-btn:hover {
       background-color: #c9302c;
     }
-    #productList > div {
+    .product {
+      padding: 10px 20px;
+      border-bottom: 1px solid #ddd;
+    }
+    .product h3 {
+      margin: 0;
+    }
+    .btn {
+      padding: 6px 10px;
+      margin-top: 5px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn:hover {
+      background-color: #0056b3;
+    }
+    #viewCart {
       margin: 20px;
     }
   </style>
@@ -43,63 +62,72 @@
   <button class="logout-btn" onclick="logout()">Logout</button>
 </div>
 
-<h2>Product List</h2>
+<h1 style="padding-left: 20px;">Available Products</h1>
 
-<div id="productList">
-  <div>
-    <strong>Laptop</strong> - $999.99
-    <button onclick="addToCart('1', 'Laptop', 999.99)">Add to Cart</button>
-  </div>
-  <div>
-    <strong>Phone</strong> - $499.99
-    <button onclick="addToCart('2', 'Phone', 499.99)">Add to Cart</button>
-  </div>
-  <div>
-    <strong>Headphones</strong> - $199.99
-    <button onclick="addToCart('3', 'Headphones', 199.99)">Add to Cart</button>
-  </div>
+<div class="product">
+  <h3>Laptop</h3>
+  <p>Price: $999.99</p>
+  <button class="btn" onclick="addToCart('p1', 'Laptop', 999.99)">Add to Cart</button>
 </div>
 
-<button onclick="viewCart()">View Cart</button>
+<div class="product">
+  <h3>Phone</h3>
+  <p>Price: $499.99</p>
+  <button class="btn" onclick="addToCart('p2', 'Phone', 499.99)">Add to Cart</button>
+</div>
+
+<div class="product">
+  <h3>Headphones</h3>
+  <p>Price: $199.99</p>
+  <button class="btn" onclick="addToCart('p3', 'Headphones', 199.99)">Add to Cart</button>
+</div>
+
+<div id="viewCart">
+  <button class="btn" onclick="window.location.href='cart.html'">View Cart</button>
+</div>
 
 <script>
-  const email = localStorage.getItem("user_email") || "test@example.com";
-  const name = localStorage.getItem("user_name") || "Guest User";
+  const userEmail = localStorage.getItem("user_email");
+  const userName = localStorage.getItem("user_name") || "Guest User";
   const loginTime = localStorage.getItem("login_time") || new Date().toLocaleString();
 
+  if (!userEmail) {
+    window.location.href = "login.html";
+  }
+
   document.getElementById("userInfo").innerHTML = `
-    <div><strong>Name:</strong> ${name}</div>
-    <div><strong>Email:</strong> ${email}</div>
+    <div><strong>Name:</strong> ${userName}</div>
+    <div><strong>Email:</strong> ${userEmail}</div>
     <div><strong>Login Time:</strong> ${loginTime}</div>
   `;
 
-  const cartKey = `cart_items_${email}`;
-
   function addToCart(id, name, price) {
+    const cartKey = `cart_items_${userEmail}`;
     let cart = JSON.parse(localStorage.getItem(cartKey)) || [];
 
-    const existing = cart.find(item => item.id === id);
+    const existing = cart.find(item => item.item === id);
     if (existing) {
       existing.quantity += 1;
     } else {
-      cart.push({ id, name, price, quantity: 1 });
+      cart.push({
+        item: id,
+        name: name,
+        price: price,
+        quantity: 1,
+        url: window.location.href,
+        item_type: "product"
+      });
     }
 
     localStorage.setItem(cartKey, JSON.stringify(cart));
     alert(`${name} added to cart.`);
   }
 
-  function viewCart() {
-    window.location.href = 'cart.html';
-  }
-
   function logout() {
     localStorage.removeItem("user_email");
     localStorage.removeItem("user_name");
     localStorage.removeItem("login_time");
-    // optionally remove the cart too
-    localStorage.removeItem(cartKey);
-    window.location.href = 'index.html'; // or your login page
+    window.location.href = "index.html";
   }
 </script>
 
