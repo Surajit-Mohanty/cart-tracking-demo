@@ -16,7 +16,7 @@
 
     const container = document.getElementById("cartDisplay");
 
-    // Display cart items
+    // Display cart
     if (cart.length === 0) {
       container.innerHTML = "<p>Your cart is empty.</p>";
     } else {
@@ -29,28 +29,34 @@
       container.appendChild(ul);
     }
 
-    // === Einstein/ETMC style tracking using image beacon to avoid CORS ===
-    // Replace with your actual org ID and webhook site URL
-    const webhookBase = "webhook.site/b38391fa-e2a1-4464-9e9b-b179eb204910"; // <-- Your webhook.site URL without protocol
-    const orgId = "514007099"; // Your org ID
+    // === Einstein/ETMC Cart Tracking via Image Beacon ===
 
     if (cart.length > 0 && userEmail) {
-      const payloadObj = {
-        user_info: { email: userEmail },
-        cart: cart,
-        url: window.location.href
+      // Prepare payload
+      const payload = {
+        email: userEmail,
+        cart: cart
       };
-      const payloadStr = encodeURIComponent(JSON.stringify(payloadObj));
+
+      // Encode payload for URL
+      const encodedPayload = encodeURIComponent(JSON.stringify(payload));
+
+      // Your webhook site URL (replace with your own)
+      const webhookBase = "https://webhook.site/b38391fa-e2a1-4464-9e9b-b179eb204910";
+
+      // Construct full URL with payload as query param
+      const url = `${webhookBase}?payload=${encodedPayload}`;
+
+      // Create invisible image to send the data
       const img = new Image();
-      img.src = `https://${webhookBase}/c2/${orgId}/track_cart?payload=${payloadStr}`;
+      img.src = url;
       img.style.display = "none";
-      img.width = 0;
-      img.height = 0;
-      img.alt = "";
-      img.setAttribute("aria-hidden", "true");
+
+      // Append image to body to trigger the request
       document.body.appendChild(img);
 
-      console.log("Tracking image beacon sent with payload:", payloadObj);
+      // For debugging, you can log this
+      console.log("Tracking image beacon sent with payload:", payload);
     }
   </script>
 </body>
